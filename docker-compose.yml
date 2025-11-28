@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  vlm-demo:
+    build: .
+    image: vlm-demo:latest
+
+    # Пробрасываем порт: снаружи -> внутрь контейнера
+    ports:
+      - "${VLM_PORT:-8888}:${VLM_PORT:-8888}"
+
+    environment:
+      # Настройки модели
+      VLM_MODEL_SIZE: "${VLM_MODEL_SIZE:-500M}"   # 500M или 256M
+      VLM_DEVICE: "${VLM_DEVICE:-auto}"           # auto / cuda / cpu
+      VLM_PORT: "${VLM_PORT:-8888}"
+
+      # Кэш Hugging Face
+      HF_HOME: /data/hf-cache
+      HUGGINGFACE_HUB_CACHE: /data/hf-cache
+      TRANSFORMERS_CACHE: /data/hf-cache
+
+      # HF_LOCAL_ONLY=1 => работаем только с локальными файлами (строгий offline)
+      HF_LOCAL_ONLY: "${HF_LOCAL_ONLY:-0}"
+
+    # Volume для кэша и весов
+    volumes:
+      - ./hf-cache:/data/hf-cache
+
+    # Для GPU можно запускать так:
+    #   docker compose run --gpus all vlm-demo
+    # (это флаг CLI, а не настройка compose-файла)

@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# IDE / editors
+.vscode/
+.idea/
+
+# HuggingFace cache & model weights
+hf-cache/
+data/
+checkpoints/
+*.safetensors
+*.bin
+
+# Docker / runtime
+*.log
+*.pid
+
+# Misc
+.env
+.DS_Store
