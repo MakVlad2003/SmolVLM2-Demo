@@ -298,7 +298,5 @@ Please refer to the model card for licensing and intended use.
 
 ## License
 
-This project is released under the [MIT License](LICENSE).
-
 The underlying models are provided by
 [HuggingFaceTB](https://huggingface.co/HuggingFaceTB) and keep their own licenses.
