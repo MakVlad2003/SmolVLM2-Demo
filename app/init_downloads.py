@@ -1,30 +1,13 @@
-"""
-init_downloads.py
-
-Скрипт для ПРЕДзагрузки моделей SmolVLM2 в кэш Hugging Face / примонтированный volume.
-
-Пример использования (позже опишем в README):
-
-    docker run --rm \
-      -e HF_HOME=/data/hf-cache \
-      -v /path/on/host/hf-cache:/data/hf-cache \
-      your-image-name \
-      python -m app.init_downloads
-"""
-
 import os
 from typing import List
 
 from huggingface_hub import snapshot_download
 
-
-# Те же модели, что и в config.SMOLVLM2_MODELS
 MODELS: List[str] = [
     "HuggingFaceTB/SmolVLM2-256M-Video-Instruct",
     "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
 ]
 
-# Можно не тянуть лишние форматы (onnx, tflite, tf и т.п.)
 IGNORE_PATTERNS = [
     "*.md",
     "*.onnx",
@@ -53,7 +36,7 @@ def main() -> None:
             ignore_patterns=IGNORE_PATTERNS,
         )
 
-    print("[init_downloads] Done ✅")
+    print("[init_downloads] Done")
 
 
 if __name__ == "__main__":

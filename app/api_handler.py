@@ -15,13 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class ApiHandler:
-    """
-    Обёртка над FastAPI-приложением для HTTP API.
-    Эндпоинты:
-      - POST /ptt/convert  — VQA / captioning (chat-режим)
-      - POST /ptt/ocr      — OCR-распознавание текста
-    """
-
     def __init__(
         self,
         task_queue: "queue.Queue[Dict[str, Any]]",
@@ -41,33 +34,25 @@ class ApiHandler:
             image: Optional[UploadFile] = File(default=None),
             query: str = Form(..., description="User question / prompt"),
         ):
-            """
-            Визуальный вопрос-ответ + captioning:
-              - query (обязательный)
-              - image (опционально, если не передан — используем DEMO_IMAGE)
-            """
             if not query or not query.strip():
-                raise HTTPException(status_code=400, detail="Поле 'query' обязательно и не может быть пустым.")
+                raise HTTPException(status_code=400, detail="'query' is nessesary, it can't be empty.")
 
-            # Если изображение не передано — берём демо-картинку
             if image is None:
                 demo_path = Path(config.DEMO_IMAGE)
                 if not demo_path.exists():
                     raise HTTPException(
                         status_code=500,
-                        detail=f"Демо-изображение не найдено по пути {demo_path}",
+                        detail=f"Demo-image was not found by this path: {demo_path}",
                     )
                 image_path = demo_path
             else:
-                # Проверим, что это изображение (content-type начинается с 'image/')
                 content_type = (image.content_type or "").lower()
                 if not content_type.startswith("image/"):
                     raise HTTPException(
                         status_code=400,
-                        detail=f"Ожидался файл изображения, получен тип '{content_type}'.",
+                        detail=f"Image file is wated, get a type: '{content_type}'.",
                     )
 
-                # Сохраним на диск
                 suffix = Path(image.filename or "").suffix or ".png"
                 fname = f"{uuid.uuid4().hex}{suffix}"
                 image_path = self.storage_dir / fname
@@ -76,20 +61,19 @@ class ApiHandler:
                     raw = await image.read()
                     image_path.write_bytes(raw)
                 except Exception as e:
-                    logger.exception("Не удалось сохранить загруженный файл")
+                    logger.exception("I can't find this file")
                     raise HTTPException(
                         status_code=500,
-                        detail=f"Не удалось сохранить файл: {e}",
+                        detail=f"I can't find this file: {e}",
                     )
 
-            # Создаём задачу для воркера
             task_id = uuid.uuid4().int & ((1 << 31) - 1)
             self.task_queue.put(
                 {
                     "id": task_id,
                     "image_path": str(image_path),
                     "prompt": query,
-                    "mode": "chat",  # режим VQA/captioning
+                    "mode": "chat",  
                 }
             )
 
@@ -99,7 +83,7 @@ class ApiHandler:
                 try:
                     return waiter.get(timeout=timeout)
                 except queue.Empty:
-                    raise TimeoutError("Время ожидания ответа модели истекло.")
+                    raise TimeoutError("Time of model wating is finish.")
 
             try:
                 result = await run_in_threadpool(wait_for_result)
@@ -118,16 +102,11 @@ class ApiHandler:
         async def ocr(
             image: UploadFile = File(..., description="Изображение с текстом"),
         ):
-            """
-            OCR сценaрий:
-              - обязательно изображение
-              - внутренний OCR-промпт задаётся в config.OCR_SYSTEM_PROMPT
-            """
             content_type = (image.content_type or "").lower()
             if not content_type.startswith("image/"):
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Для OCR ожидается изображение, получен тип '{content_type}'.",
+                    detail=f"For OCR we wait image, type: '{content_type}'.",
                 )
 
             suffix = Path(image.filename or "").suffix or ".png"
@@ -138,10 +117,10 @@ class ApiHandler:
                 raw = await image.read()
                 image_path.write_bytes(raw)
             except Exception as e:
-                logger.exception("Не удалось сохранить файл для OCR")
+                logger.exception("I can't save the inage")
                 raise HTTPException(
                     status_code=500,
-                    detail=f"Не удалось сохранить файл: {e}",
+                    detail=f"I can't save this file: {e}",
                 )
 
             task_id = uuid.uuid4().int & ((1 << 31) - 1)
@@ -149,7 +128,7 @@ class ApiHandler:
                 {
                     "id": task_id,
                     "image_path": str(image_path),
-                    "prompt": "",  # для OCR текст промпта не нужен
+                    "prompt": "",  
                     "mode": "ocr",
                 }
             )
@@ -160,7 +139,7 @@ class ApiHandler:
                 try:
                     return waiter.get(timeout=timeout)
                 except queue.Empty:
-                    raise TimeoutError("Время ожидания OCR-результата истекло.")
+                    raise TimeoutError("Time of wating OCR is finish.")
 
             try:
                 result = await run_in_threadpool(wait_for_result)

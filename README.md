@@ -1,4 +1,7 @@
-Окей, давай просто нормальный, ровный `README.md` без лишней воды. Вот готовый текст — можешь копировать как есть в файл.
+Ок, давай сделаем аккуратный, цельный README и добавим туда примеры VQA/OCR.
+Вот отредактированный вариант целиком (можешь просто заменить свой `README.md`):
+
+````markdown
 # SmolVLM2 Demo — Vision Chat & OCR 🖼️💬
 
 This repository provides a **Dockerized web demo** for the  
@@ -16,6 +19,18 @@ It is designed to:
 - keep **model weights on the host** via a mounted Hugging Face cache directory.
 
 > ⚠️ This is a demo / educational project, not a production-hardened system.
+
+---
+
+## UI Examples
+
+### Vision Chat (VQA / Captioning)
+
+![Vision Chat example](figs/VQA_image.png)
+
+### OCR (Text recognition)
+
+![OCR example](figs/OCR_image.png)
 
 ---
 

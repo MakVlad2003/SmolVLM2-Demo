@@ -19,13 +19,10 @@ def create_app() -> FastAPI:
         format="[%(asctime)s] [%(levelname)s] %(name)s: %(message)s",
     )
 
-    # Общая очередь задач для модели
     task_queue: "queue.Queue[Dict[str, Any]]" = queue.Queue()
 
-    # Брокер результатов
     broker = ResultBroker()
 
-    # Воркер с моделью
     worker = InferenceWorker(
         task_queue=task_queue,
         result_queue=broker.incoming,
@@ -33,11 +30,9 @@ def create_app() -> FastAPI:
     )
     worker.start(warmup=True)
 
-    # Строим Gradio UI
     ui_builder = GradioUI(task_queue=task_queue, result_broker=broker)
     demo = ui_builder.build()
 
-    # FastAPI-приложение
     app = FastAPI(title="SmolVLM2 Demo — UI + API")
 
     @app.get("/", response_class=RedirectResponse)
@@ -48,10 +43,8 @@ def create_app() -> FastAPI:
     async def health():
         return "ok"
 
-    # Монтируем Gradio интерфейс на /ui
     mount_gradio_app(app, demo, path="/ui")
 
-    # Монтируем API на /ptt
     api = ApiHandler(task_queue=task_queue, result_broker=broker)
     app.mount("/ptt", api.app)
 

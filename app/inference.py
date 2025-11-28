@@ -15,13 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class InferenceWorker:
-    """
-    Отдельный поток, который:
-    - грузит модель SmolVLM2;
-    - принимает задачи из task_queue;
-    - пишет результаты в result_queue (это broker.incoming).
-    """
-
     def __init__(
         self,
         task_queue: "queue.Queue[Dict[str, Any]]",
@@ -37,10 +30,8 @@ class InferenceWorker:
 
         logger.info(f"[SmolVLM] Loading model {self.model_id} on device={self.device} ...")
 
-        # Если выставить HF_LOCAL_ONLY=1, то from_pretrained будет работать только с локальным кэшем
         local_files_only = os.getenv("HF_LOCAL_ONLY", "0") == "1"
 
-        # Убедимся, что директория кэша существует (важно при монтировании volume)
         try:
             config.MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
         except Exception as e:
@@ -59,8 +50,6 @@ class InferenceWorker:
 
         logger.info("[SmolVLM] Model loaded ✅")
 
-    # --------- Вспомогательные методы ---------
-
     def _resolve_device(self, mode: str) -> torch.device:
         mode = (mode or "auto").lower()
         if mode == "cpu":
@@ -71,16 +60,11 @@ class InferenceWorker:
                 return torch.device("cpu")
             return torch.device("cuda")
 
-        # auto
         if torch.cuda.is_available():
             return torch.device("cuda")
         return torch.device("cpu")
 
     def _build_messages(self, image: Image.Image, prompt: str) -> list[Dict[str, Any]]:
-        """
-        Формируем сообщения в формате, который ожидает SmolVLM2
-        (image + text в одном message).
-        """
         return [
             {
                 "role": "user",
@@ -92,12 +76,6 @@ class InferenceWorker:
         ]
 
     def analyze_image(self, image_path: str, prompt: str, mode: str = "chat") -> str:
-        """
-        Универсальная функция анализа:
-        - mode="chat"  -> VQA / captioning
-        - mode="ocr"   -> OCR, используем специальный промпт
-        """
-        # Подготовка промпта
         if mode == "ocr":
             final_prompt = f"{config.OCR_SYSTEM_PROMPT}\n\nImage:"
         else:
@@ -127,19 +105,13 @@ class InferenceWorker:
         )
         text = generated_texts[0].strip()
 
-        # Иногда модель добавляет "Assistant: ..." — подчистим
         for marker in ("Assistant:", "assistant:"):
             if marker in text:
                 text = text.split(marker, 1)[-1].strip()
 
         return text
 
-    # --------- Запуск воркера ---------
-
     def start(self, warmup: bool = True) -> None:
-        """
-        Опциональный прогрев на DEMO_IMAGE и запуск фонового цикла.
-        """
         if warmup:
             try:
                 demo_path = config.DEMO_IMAGE
