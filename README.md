@@ -1,7 +1,7 @@
 # SmolVLM2 Demo — Vision Chat & OCR 🖼️💬
 
 This repository provides a **Dockerized web demo** for the  
-[SmolVLM2-500M-Video-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct) model.
+[SmolVLM2-500M-Video-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct) and [SmolVLM2-256M-Video-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM2-256M-Video-Instruct) models.
 
 The app includes:
 
@@ -32,7 +32,7 @@ It is designed to:
 
 ## Features
 
-- 🧠 SmolVLM2 500M vision-language model (model size is configurable)
+- 🧠 SmolVLM2 256/500M vision-language model (model size is configurable)
 - 💬 Vision Chat: image captioning & visual question answering in a chat-like interface
 - 📝 OCR: recognize text from images and save it as `.txt`
 - 🔁 Multi-turn dialogue on the same image (no need to re-upload the image)
@@ -49,6 +49,7 @@ It is designed to:
 - For GPU mode:
   - NVIDIA GPU with recent drivers
   - `--gpus all` support in Docker
+  - At least **2 GB VRAM** recommended for the 256M model
   - At least **4 GB VRAM** recommended for the 500M model
 
 ---
@@ -78,6 +79,7 @@ docker run --rm --gpus all \
   -v "$(pwd)/hf-cache:/data/hf-cache" \
   vlm-demo:latest
 ```
+You can change `VLM_MODEL_SIZE=...` by `256M and 500M`.
 
 Then open in your browser:
 
@@ -135,7 +137,7 @@ The container is configured through environment variables:
 
 | Variable                | Required | Default          | Description                                                                |
 | ----------------------- | -------- | ---------------- | -------------------------------------------------------------------------- |
-| `VLM_MODEL_SIZE`        | yes      | `500M`           | SmolVLM2 model size (e.g. `500M`, other sizes if supported by backend).    |
+| `VLM_MODEL_SIZE`        | yes      | `256/500M`       | SmolVLM2 model size (e.g. `256/500M`, other sizes if supported by backend).|
 | `VLM_DEVICE`            | yes      | `cpu`            | `cuda` for GPU, `cpu` for CPU inference.                                   |
 | `VLM_PORT`              | yes      | `8888`           | HTTP port inside the container.                                            |
 | `HF_LOCAL_ONLY`         | yes      | `1`              | `1` → use only local cache; `0` → allow downloading from Hugging Face Hub. |
@@ -291,6 +293,7 @@ This demo uses **SmolVLM2** from Hugging Face:
   [https://huggingface.co/blog/smolvlm2](https://huggingface.co/blog/smolvlm2)
 * Model card:
   [https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct)
+  [https://huggingface.co/HuggingFaceTB/SmolVLM2-256M-Video-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM2-256M-Video-Instruct)
 
 Please refer to the model card for licensing and intended use.
 
